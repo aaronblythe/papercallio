@@ -1,0 +1,69 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug-rvm",
+            "type": "Ruby",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "program": "${workspaceRoot}/bin/rackup",
+            "args": [
+                "-E", "development",
+                "-o", "0.0.0.0",
+                "-p", "4567"
+            ],
+            "useBundler": true,
+            "pathToBundler": "/Users/ablythe/.rvm/gems/ruby-2.3.3/wrappers/bundle",
+            "showDebuggerOutput": true,
+            "pathToRDebugIDE": "${workspaceRoot}/bin/rdebug-ide"
+        },
+        {
+            "name": "RSpec - all(rvm)",
+            "type": "Ruby",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "program": "${workspaceRoot}/bin/rspec",
+            "useBundler": true,
+            "pathToBundler": "${env.HOME}/.rvm/gems/${env.rvm_ruby_string}/wrappers/bundle",
+            "showDebuggerOutput": true,
+            "pathToRDebugIDE": "${workspaceRoot}/bin/rdebug-ide",
+            "args": [
+                "-I",
+                "${workspaceRoot}"
+            ]
+        },
+        {
+            "name": "RSpec - active spec file only",
+            "type": "Ruby",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "program": "${workspaceRoot}/bin/rspec",
+            "useBundler": true,
+            "pathToBundler": "${env.HOME}/.rvm/gems/${env.rvm_ruby_string}/wrappers/bundle",
+            "showDebuggerOutput": true,
+            "pathToRDebugIDE": "${workspaceRoot}/bin/rdebug-ide",
+            "args": [
+                "-I",
+                "${workspaceRoot}",
+                "${file}"
+            ]
+        },
+        {
+            "name": "RSpec - active spec file only as production",
+            "type": "Ruby",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "program": "${workspaceRoot}/bin/rspec",
+            "useBundler": true,
+            "env": {"RACK_ENV": "production"},
+            "pathToBundler": "${env.HOME}/.rvm/gems/${env.rvm_ruby_string}/wrappers/bundle",
+            "showDebuggerOutput": true,
+            "pathToRDebugIDE": "${workspaceRoot}/bin/rdebug-ide",
+            "args": [
+                "-I",
+                "${workspaceRoot}",
+                "${file}"
+            ]
+        }
+    ]
+}

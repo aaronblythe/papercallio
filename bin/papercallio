@@ -1,0 +1,149 @@
+#!/usr/bin/env ruby
+require 'gli'
+require 'papercallio'
+require 'csv'
+
+include GLI::App
+
+program_desc 'Command line interface for the papercall.io API'
+
+version Papercallio::VERSION
+
+api_token = ENV['PAPERCALL_API_TOKEN']
+
+subcommand_option_handling :normal
+arguments :strict
+
+desc 'Describe some switch here'
+switch [:s,:switch]
+
+desc 'The file path for output'
+default_value 'the subcommand.csv, e.g. event.csv, submissions.csv'
+arg_name 'The file path (e.g. ./submissions.csv)'
+flag [:f,:file]
+
+desc 'Return submissions in csv file'
+arg_name 'Describe arguments to submissions here'
+command :submissions do |c|
+  c.switch 'needs_rating', :desc => 'Filter results needs rating. Default (false).'
+
+  c.flag 'state', :default_value => nil,
+                  :arg_name => 'state of submissions. ',
+                  :desc => 'Filter results by their state. Possible values are: submitted, accepted, rejected, and waitlist. If not provided then all will be returned. Can only filter to one state.'
+  c.flag 'keywords', :default_value => nil,
+                     :arg_name => 'keywords',
+                     :desc => 'Filter results keywords.'
+  c.flag 'order', :default_value => nil,
+                  :arg_name => 'order',
+                  :desc => 'Sort results. Possible values are: state, rating, ratings_count, title, created_at, talk_format_id, audience_level, confidence'
+
+  c.action do |global_options,options,args|
+    pcc = PaperCallClient.new(api_token, options)
+    response = pcc.submissions
+
+    submissions = []
+    headers = []
+    headerset = false
+    response.each do |submission|
+      line = {}
+      submission.each do |field, value|
+        if value.is_a?(Hash)
+          value.each do |subfield, subvalue|
+            line["#{field}_#{subfield}"] = subvalue
+            headers << "#{field}_#{subfield}" unless headerset
+          end
+          next
+        end
+        line[field] = value
+        headers << field unless headerset
+      end
+      headerset = true
+      submissions << line
+      line = {}
+    end
+    File.open('submissions.csv', 'w') do |f|
+      f.puts headers.to_csv
+      submissions.each do |sub|
+        f.puts headers.map { |h| sub[h] }.to_csv
+      end
+    end
+
+    puts "submissions have been output to submissions.csv"
+  end
+end
+
+desc 'Return event as json'
+arg_name 'No arguments'
+command :event do |c|
+  c.action do |global_options,options,args|
+    pcc = PaperCallClient.new(api_token, {})
+    response = pcc.event
+    puts response
+    puts "event command ran"
+  end
+end
+
+desc 'Return submission as json'
+arg_name "Arguments: 'id' identifier of the submission"
+command :rating do |c|
+  c.flag 'id', :default_value => 1,
+               :arg_name => 'papercall submission identifier',
+               :desc => 'identifier of the submission'
+  c.action do |global_options,options,args|
+    pcc = PaperCallClient.new(api_token, {})
+    response = pcc.rating(options[:id])
+    puts response
+    puts "submission for id: #{options[:id]} as json"
+  end
+end
+
+desc 'Return ratings as json'
+arg_name "Arguments: 'id' identifier of the submission"
+command :rating do |c|
+  c.flag 'id', :default_value => 1,
+               :arg_name => 'papercall submission identifier',
+               :desc => 'identifier of the submission'
+  c.action do |global_options,options,args|
+    pcc = PaperCallClient.new(api_token, {})
+    response = pcc.rating(options[:id])
+    puts response
+    puts "ratings for id: #{options[:id]} as json"
+  end
+end
+
+desc 'Return feedback as json'
+arg_name "Arguments: 'id' identifier of the submission"
+command :feedback do |c|
+  c.flag 'id', :default_value => 1,
+               :arg_name => 'papercall submission identifier',
+               :desc => 'identifier of the submission'
+  c.action do |global_options,options,args|
+    pcc = PaperCallClient.new(api_token, {})
+    response = pcc.feedback(options[:id])
+    puts response
+    puts "feedback for id: #{options[:id]} as json"
+  end
+end
+
+pre do |global,command,options,args|
+  # Pre logic here
+  # Return true to proceed; false to abort and not call the
+  # chosen command
+  # Use skips_pre before a command to skip this block
+  # on that command only
+  true
+end
+
+post do |global,command,options,args|
+  # Post logic here
+  # Use skips_post before a command to skip this
+  # block on that command only
+end
+
+on_error do |exception|
+  # Error logic here
+  # return false to skip default error handling
+  true
+end
+
+exit run(ARGV)
