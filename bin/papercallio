@@ -2,10 +2,20 @@
 require 'gli'
 require 'papercallio'
 require 'csv'
+require 'yaml'
 
 include GLI::App
 
-program_desc 'Command line interface for the papercall.io API'
+program_desc %(Command line interface for the papercall.io API
+             papercallio requires API access to download data.
+             API access is a paid feature, papercallio will not work with the free papercall plan.
+             To obtain your API token, go to the papercall website, click the events tab, choose your event,
+             then choose the Organisers link on the right hand side. On the list of organisers for your event your API
+             token will be listed under your name.
+
+             Once you have your API key export it in your shell
+
+                 export PAPERCALL_API_TOKEN=abcdefghijklmnopqrstuvwxyz1234567890)
 
 version Papercallio::VERSION
 
@@ -14,18 +24,20 @@ api_token = ENV['PAPERCALL_API_TOKEN']
 subcommand_option_handling :normal
 arguments :strict
 
-desc 'Describe some switch here'
-switch [:s,:switch]
-
 desc 'The file path for output'
-default_value 'the subcommand.csv, e.g. event.csv, submissions.csv'
+default_value 'submissions.csv'
 arg_name 'The file path (e.g. ./submissions.csv)'
-flag [:f,:file]
+flag [:f, :file]
 
-desc 'Return submissions in csv file'
-arg_name 'Describe arguments to submissions here'
+desc %(Return submissions in csv file.
+       Add your token as an environment variable for the API.
+
+               export PAPERCALL_API_TOKEN=abcdefghijklmnopqrstuvwxyz1234567890)
+arg_name 'Arguments to manipulate the submissions returned'
 command :submissions do |c|
   c.switch 'needs_rating', :desc => 'Filter results needs rating. Default (false).'
+  c.switch 'include_feedback', :desc => 'Include the feedback for all submissions in the csv (Not currently implemented).'
+  c.switch 'include_ratings', :desc => 'Include the ratings for all submissions in the csv'
 
   c.flag 'state', :default_value => nil,
                   :arg_name => 'state of submissions. ',
@@ -38,6 +50,7 @@ command :submissions do |c|
                   :desc => 'Sort results. Possible values are: state, rating, ratings_count, title, created_at, talk_format_id, audience_level, confidence'
 
   c.action do |global_options,options,args|
+    puts global_options
     pcc = PaperCallClient.new(api_token, options)
     response = pcc.submissions
 
@@ -46,6 +59,7 @@ command :submissions do |c|
     headerset = false
     response.each do |submission|
       line = {}
+      id = nil
       submission.each do |field, value|
         if value.is_a?(Hash)
           value.each do |subfield, subvalue|
@@ -55,35 +69,71 @@ command :submissions do |c|
           next
         end
         line[field] = value
+        id = value if field.eql? 'id'
         headers << field unless headerset
+      end
+
+      if options[:include_feedback]
+        #puts "OK!"
+        #submission_feedback = pcc.feedback(id)
+        #puts submission_feedback
+      end
+      if options[:include_ratings]
+        submission_ratings = pcc.rating(id)
+        total_ratings = 0
+        individual_ratings = ''
+        raters = ''
+        submission_ratings.each do |rate|
+          rate.each do |rate_field, rate_value|
+            total_ratings += rate_value if rate_field == 'value'
+            individual_ratings << "#{rate_value}, " if rate_field == 'value'
+            raters << "#{rate_value['name']}, " if rate_field == 'user'
+          end
+        end
+        line[:total_ratings] = total_ratings
+        line[:individual_ratings] = individual_ratings
+        line[:raters] = raters
+        headers.concat([:total_ratings, :individual_ratings, :raters]) unless headerset
       end
       headerset = true
       submissions << line
       line = {}
     end
-    File.open('submissions.csv', 'w') do |f|
+    File.open(global_options[:file], 'w') do |f|
       f.puts headers.to_csv
       submissions.each do |sub|
         f.puts headers.map { |h| sub[h] }.to_csv
       end
     end
 
-    puts "submissions have been output to submissions.csv"
+    puts "submissions have been output to #{global_options[:file]}"
   end
 end
 
-desc 'Return event as json'
+desc 'Return event as yaml'
 arg_name 'No arguments'
 command :event do |c|
   c.action do |global_options,options,args|
     pcc = PaperCallClient.new(api_token, {})
     response = pcc.event
-    puts response
-    puts "event command ran"
+    puts response.parsed_response.to_yaml
   end
 end
 
-desc 'Return submission as json'
+desc 'Return a single submission as yaml'
+arg_name "Arguments: 'id' identifier of the submission"
+command :submission do |c|
+  c.flag 'id', :default_value => 1,
+               :arg_name => 'papercall submission identifier',
+               :desc => 'identifier of the submission'
+  c.action do |global_options,options,args|
+    pcc = PaperCallClient.new(api_token, {})
+    response = pcc.submission(options[:id])
+    puts response.parsed_response.to_yaml
+  end
+end
+
+desc 'Return ratings for a single submission as yaml'
 arg_name "Arguments: 'id' identifier of the submission"
 command :rating do |c|
   c.flag 'id', :default_value => 1,
@@ -92,26 +142,11 @@ command :rating do |c|
   c.action do |global_options,options,args|
     pcc = PaperCallClient.new(api_token, {})
     response = pcc.rating(options[:id])
-    puts response
-    puts "submission for id: #{options[:id]} as json"
+    puts response.parsed_response.to_yaml
   end
 end
 
-desc 'Return ratings as json'
-arg_name "Arguments: 'id' identifier of the submission"
-command :rating do |c|
-  c.flag 'id', :default_value => 1,
-               :arg_name => 'papercall submission identifier',
-               :desc => 'identifier of the submission'
-  c.action do |global_options,options,args|
-    pcc = PaperCallClient.new(api_token, {})
-    response = pcc.rating(options[:id])
-    puts response
-    puts "ratings for id: #{options[:id]} as json"
-  end
-end
-
-desc 'Return feedback as json'
+desc 'Return feedback for a single submission as yaml'
 arg_name "Arguments: 'id' identifier of the submission"
 command :feedback do |c|
   c.flag 'id', :default_value => 1,
@@ -120,8 +155,7 @@ command :feedback do |c|
   c.action do |global_options,options,args|
     pcc = PaperCallClient.new(api_token, {})
     response = pcc.feedback(options[:id])
-    puts response
-    puts "feedback for id: #{options[:id]} as json"
+    puts response.parsed_response.to_yaml
   end
 end
 
