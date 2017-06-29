@@ -24,7 +24,10 @@ Or install it yourself as:
 
 papercallio requires API access to download data. API access is a paid feature, papercallio will not work with the free papercall plan.
 
-To obtain your API token, go to the papercall website, click the events tab, choose your event, then choose the Organisers link on the right hand side. On the list of organisers for your event your API token will be listed under your name.
+To obtain your API token, go to the papercall website, click the events tab, choose your event, then choose the "Organizers" link on the right hand side. On the list of organizers for your event your API token will be listed under your name.
+
+If you select "API Documentation" instead you should end up on a page like (replace event id with your id) that will show you the resultant json response for your event.
+https://www.papercall.io/events/[event id]/apidocs
 
 Once you have your API key export it in your shell
 
@@ -37,6 +40,7 @@ export PAPERCALL_API_TOKEN=abcdefghijklmnopqrstuvwxyz1234567890
 ```
 papercallio help
 papercallio help submissions
+export PAPERCALL_API_TOKEN=abcdefghijklmnopqrstuvwxyz1234567890
 papercallio submissions
 ```
 
@@ -46,6 +50,8 @@ Add flags to the command as defined in the help file.
 
 ```
 bundle install
+papercallio help
+papercallio help submissions
 bundle exec bin/papercallio submissions
 ```
 
@@ -57,5 +63,5 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/papercallio. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/aaronblythe/papercallio. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
