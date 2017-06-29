@@ -20,6 +20,7 @@ program_desc %(Command line interface for the papercall.io API
 version Papercallio::VERSION
 
 api_token = ENV['PAPERCALL_API_TOKEN']
+raise 'must set `export PAPERCALL_API_TOKEN=abcdefghijklmnopqrstuvwxyz1234567890` to call the API. See help.' if api_token.nil?
 
 subcommand_option_handling :normal
 arguments :strict
