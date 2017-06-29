@@ -5,6 +5,7 @@ class PaperCallClient
   base_uri 'www.papercall.io'
 
   def initialize(api_token, query_options)
+    raise 'must set `export PAPERCALL_API_TOKEN=abcdefghijklmnopqrstuvwxyz1234567890` to call the API. See help.' if api_token.nil?
     @query = { 
       # page: page,
       # TODO: for first iteration, just going to hardcode to 9999
