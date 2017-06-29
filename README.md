@@ -50,8 +50,8 @@ Add flags to the command as defined in the help file.
 
 ```
 bundle install
-papercallio help
-papercallio help submissions
+bundle exec bin/papercallio help
+bundle exec bin/papercallio help submissions
 bundle exec bin/papercallio submissions
 ```
 
