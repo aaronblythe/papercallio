@@ -101,11 +101,15 @@ command :submissions do |c|
       submissions << line
       line = {}
     end
-    File.open(global_options[:file], 'w') do |f|
-      f.puts headers.to_csv
-      submissions.each do |sub|
-        f.puts headers.map { |h| sub[h] }.to_csv
+    File.open(global_options[:file], 'w+:UTF-16LE:UTF-8') do |f|
+      csv_file = CSV.generate(col_sep: ',') do |csv|
+        csv << headers
+        submissions.each do |sub|
+          csv << headers.map { |h| sub[h] }
+        end
       end
+      f.write '\xEF\xBB\xBF'
+      f.write(csv_file)
     end
 
     puts "submissions have been output to #{global_options[:file]}"
