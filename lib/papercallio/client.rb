@@ -31,7 +31,8 @@ class PaperCallClient
   end
 
   def rating(id)
-    self.class.get("/api/v1/submissions/#{id}/ratings", @options)
+    response = self.class.get("/api/v1/submissions/#{id}/ratings", @options)
+    response.success? ? response : []
   end
 
   def feedback(id)
