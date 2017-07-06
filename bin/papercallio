@@ -3,8 +3,16 @@ require 'gli'
 require 'papercallio'
 require 'csv'
 require 'yaml'
+require 'descriptive_statistics'
 
 include GLI::App
+
+class Float
+  def signif(digits)
+    return 0 if self.zero?
+    self.round(-(Math.log10(self).ceil - digits))
+  end
+end
 
 program_desc %(Command line interface for the papercall.io API
              papercallio requires API access to download data.
@@ -56,6 +64,7 @@ command :submissions do |c|
     submissions = []
     headers = []
     headerset = false
+    reviewers = {}
     response.each do |submission|
       line = {}
       id = nil
@@ -83,19 +92,33 @@ command :submissions do |c|
         individual_ratings = ''
         raters = ''
         comments = ''
+        headers.concat([:total_ratings, :individual_ratings, :raters, :comments]) unless headerset
         submission_ratings.each do |rate|
+          user = ''
+          rating = 0
+          comment = ''
           rate.each do |rate_field, rate_value|
+            # individual
+            user = rate_value['name'].to_s if rate_field == 'user'
+            rating = rate_value if rate_field == 'value'
+            comment = rate_value if rate_field == 'comments'
+            # cumulative
             total_ratings += rate_value if rate_field == 'value'
             individual_ratings << "#{rate_value}, " if rate_field == 'value'
             raters << "#{rate_value['name']}, " if rate_field == 'user'
-            comments << "#{rate_value['comments']}, " if rate_field == 'comments'
+            comments << "#{rate_value}, " if rate_field == 'comments'
           end
+          reviewers[user] = [] unless headers.include?("#{user}-rating")
+          reviewers[user].push(rating)
+          headers.push("#{user}-rating") unless headers.include?("#{user}-rating")
+          headers.push("#{user}-comment") unless headers.include?("#{user}-comment")
+          line["#{user}-rating"] = rating
+          line["#{user}-comment"] = comment
         end
         line[:total_ratings] = total_ratings
         line[:individual_ratings] = individual_ratings
         line[:raters] = raters
         line[:comments] = comments
-        headers.concat([:total_ratings, :individual_ratings, :raters, :comments]) unless headerset
       end
       headerset = true
       submissions << line
@@ -107,7 +130,13 @@ command :submissions do |c|
         f.puts headers.map { |h| sub[h] }.to_csv
       end
     end
-
+    if options[:include_ratings]
+      puts 'Summary of reviewers:'
+      puts "Name: \t\t ratings \t mean \t median \t mode \t stdev \t range \t high \t low"
+      reviewers.each do |name, rating_array|
+        puts "#{name}: \t #{rating_array.size} \t\t #{rating_array.mean.signif(4)} \t #{rating_array.median} \t\t #{rating_array.mode} \t #{rating_array.standard_deviation.signif(4)} \t #{rating_array.range} \t #{rating_array.percentile(100)} \t #{rating_array.percentile(0)}"
+      end
+    end
     puts "submissions have been output to #{global_options[:file]}"
   end
 end

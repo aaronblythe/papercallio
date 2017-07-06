@@ -20,4 +20,5 @@ spec = Gem::Specification.new do |s|
   s.add_development_dependency 'rspec', '~> 3.6'
   s.add_runtime_dependency 'gli', '2.16.0'
   s.add_runtime_dependency 'httparty', '~> 0.15'
+  s.add_runtime_dependency 'descriptive_statistics', '~> 2.5'
 end
