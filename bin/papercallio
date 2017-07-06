@@ -56,6 +56,10 @@ command :submissions do |c|
   c.flag 'order', :default_value => nil,
                   :arg_name => 'order',
                   :desc => 'Sort results. Possible values are: state, rating, ratings_count, title, created_at, talk_format_id, audience_level, confidence'
+  c.flag 'filter', :default_value => [],
+                   :arg_name => 'filter',
+                   :desc => "Filter results based on comments by reviewers. Can use multiple, ex. --filter='top_talk' --filter='top_ignite' --filter='open_space'" ,
+                   :multiple => true
 
   c.action do |global_options,options,args|
     pcc = PaperCallClient.new(api_token, options)
@@ -67,6 +71,7 @@ command :submissions do |c|
     reviewers = {}
     response.each do |submission|
       line = {}
+      include_line = false
       id = nil
       submission.each do |field, value|
         if value.is_a?(Hash)
@@ -119,9 +124,16 @@ command :submissions do |c|
         line[:individual_ratings] = individual_ratings
         line[:raters] = raters
         line[:comments] = comments
+        if options[:filter].empty?
+          include_line = true
+        elsif options[:filter].any? { |word| comments.include?(word) }
+          include_line = true
+        end
+      else
+        include_line = true
       end
       headerset = true
-      submissions << line
+      submissions << line if include_line
       line = {}
     end
     File.open(global_options[:file], 'w') do |f|
