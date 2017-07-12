@@ -58,7 +58,7 @@ command :submissions do |c|
                   :desc => 'Sort results. Possible values are: state, rating, ratings_count, title, created_at, talk_format_id, audience_level, confidence'
   c.flag 'filter', :default_value => [],
                    :arg_name => 'filter',
-                   :desc => "Filter results based on comments by reviewers. Can use multiple, ex. --filter='top_talk' --filter='top_ignite' --filter='open_space'" ,
+                   :desc => "Filter results based on comments by reviewers. Can use multiple, ex. --filter='top_talk' --filter='top_ignite' --filter='open_space' NOTE: will only work when --include_ratings is used and even then when the user's role has the 'see ratings' privilege in papercall." ,
                    :multiple => true
 
   c.action do |global_options,options,args|
