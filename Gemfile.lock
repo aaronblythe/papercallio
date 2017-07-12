@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    papercallio (0.4.0)
+    papercallio (0.4.1)
       descriptive_statistics (~> 2.5)
       gli (= 2.16.0)
       httparty (~> 0.15)
