@@ -46,7 +46,7 @@ command :submissions do |c|
   c.switch 'needs_rating', :desc => 'Filter results needs rating. Default (false).'
   c.switch 'include_feedback', :desc => 'Include the feedback for all submissions in the csv (Not currently implemented).'
   c.switch 'include_ratings', :desc => 'Include the ratings for all submissions in the csv'
-  c.switch 'devopsdays_output', :desc => 'Output the markdown for accepted speakers and submissions for the DevOpsDays website. Default (false).'
+  c.switch 'devopsdays_output', :desc => 'Output the markdown for accepted speakers and submissions for the DevOpsDays website. Default (false). NOTE: may need to use --state=accepted if no longer in submitted state.'
 
   c.flag 'state', :default_value => nil,
                   :arg_name => 'state of submissions. ',
@@ -65,7 +65,7 @@ command :submissions do |c|
   c.action do |global_options,options,args|
     pcc = PaperCallClient.new(api_token, options)
     response = pcc.submissions
-    %w(speakers agenda images).each{|dir| FileUtils.mkdir_p( "./#{dir}")} if options[:devopsdays_output]
+    %w(speakers program images).each{|dir| FileUtils.mkdir_p( "./#{dir}")} if options[:devopsdays_output]
 
     submissions = []
     headers = []
@@ -137,7 +137,8 @@ command :submissions do |c|
       headerset = true
       submissions << line if include_line
       if options[:devopsdays_output]
-        DevOpsDaysOutput.new(line) if line[:state] == 'accepted'
+        dodo = DevOpsDaysOutput.new(line) #if line[:state] == 'accepted'
+        #dodo.download_twitter_image
       end
       line = {}
     end
