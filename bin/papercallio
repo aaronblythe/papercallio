@@ -46,6 +46,7 @@ command :submissions do |c|
   c.switch 'needs_rating', :desc => 'Filter results needs rating. Default (false).'
   c.switch 'include_feedback', :desc => 'Include the feedback for all submissions in the csv (Not currently implemented).'
   c.switch 'include_ratings', :desc => 'Include the ratings for all submissions in the csv'
+  c.switch 'devopsdays_output', :desc => 'Output the markdown for accepted speakers and submissions for the DevOpsDays website. Default (false).'
 
   c.flag 'state', :default_value => nil,
                   :arg_name => 'state of submissions. ',
@@ -64,6 +65,7 @@ command :submissions do |c|
   c.action do |global_options,options,args|
     pcc = PaperCallClient.new(api_token, options)
     response = pcc.submissions
+    %w(speakers agenda images).each{|dir| FileUtils.mkdir_p( "./#{dir}")} if options[:devopsdays_output]
 
     submissions = []
     headers = []
@@ -134,6 +136,9 @@ command :submissions do |c|
       end
       headerset = true
       submissions << line if include_line
+      if options[:devopsdays_output]
+        DevOpsDaysOutput.new(line) if line[:state] == 'accepted'
+      end
       line = {}
     end
     File.open(global_options[:file], 'w') do |f|
