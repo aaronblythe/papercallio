@@ -156,6 +156,10 @@ command :submissions do |c|
       end
     end
     puts "submissions have been output to #{global_options[:file]}"
+    if options[:devopsdays_output]
+      puts "Since `--devopsdays_output` flag was used a folder for 'speakers' and 'program' should have your markdown"
+      puts "NOTE if you have already moved things to accepted, may have to use the `--state=accepted` flag"
+    end
   end
 end
 
