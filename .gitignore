@@ -54,3 +54,9 @@ build-iPhoneSimulator/
 *.xlsx
 *.ods
 *.csv#
+speakers/
+speakers/**.*
+program/
+program/**.*
+images/
+images/**.*
