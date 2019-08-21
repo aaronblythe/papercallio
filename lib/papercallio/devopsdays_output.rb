@@ -31,8 +31,8 @@ class DevOpsDaysOutput
       "Talk_start_time = \"\"",
       "Talk_end_time = \"\"",
       "Title = \"#{@submission['talk_title']}\"",
-      "Type = \"#{@talk_type}\"",
-      "Speakers = [\"#{@submission['profile_name']}\"]",
+      "Type = \"talk\"",
+      "Speakers = [\"#{@reformat_name}\"]",
       "+++",
       "#{@submission['talk_description']}"
     ].join("\n") + "\n"
