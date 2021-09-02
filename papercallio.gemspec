@@ -15,7 +15,7 @@ spec = Gem::Specification.new do |s|
   s.bindir = 'bin'
   s.executables << 'papercallio'
   s.add_development_dependency 'rake', '~> 12.0'
-  s.add_development_dependency 'rdoc', '~> 5.1'
+  s.add_development_dependency 'rdoc', '~> 6.3'
   s.add_development_dependency 'aruba', '~> 0.14'
   s.add_development_dependency 'rspec', '~> 3.6'
   s.add_runtime_dependency 'gli', '2.16.0'
